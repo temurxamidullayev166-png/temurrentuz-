@@ -811,7 +811,7 @@
          9. JAVASCRIPT — ASOSIY SOZLAMALAR
          ===================================================== -->
 
-    <script>
+    <script is:inline`>
 
         // Foydalanuvchi ro'yxatdan o'tganligini bildiradi.
         let isRegistered = false;
@@ -1577,28 +1577,243 @@ function clearFieldError(element) {
 
 
 // Asosiy formani tekshirish funksiyasi.
+
+// Asosiy formani tekshirish funksiyasi.
 function handleFormSubmit() {
 
     // Dastlab barcha ma'lumotlar to'g'ri deb hisoblaymiz.
     let allValid = true;
 
-   // Ism va familiyani tekshirish
-const name = document.getElementById('inp-name').value.trim();
+    // ================================================
+    // 1. ISM VA FAMILIYANI TEKSHIRISH
+    // ================================================
 
-const nameParts = name.split(/\s+/);
+    const nameInput = document.getElementById('inp-name');
+    const name = nameInput.value.trim();
 
-const validName = nameParts.length >= 2 &&
-    nameParts.every(part =>
-        /^[\p{L}]+(?:[’'ʻʼ-][\p{L}]+)*$/u.test(part)
-    );
+    const nameParts = name.split(/\s+/);
 
-if (!validName) {
-    showFieldError(
-        document.getElementById('inp-name'),
-        'Ism va familiyangizni to‘g‘ri kiriting!'
-    );
-    return;
+    const validName = nameParts.length >= 2 &&
+        nameParts.every(part =>
+            /^[\p{L}]+(?:[’'ʻʼ-][\p{L}]+)*$/u.test(part)
+        );
+
+    if (!validName) {
+
+        showFieldError(
+            nameInput,
+            'Ism va familiyangizni to‘g‘ri kiriting!'
+        );
+
+        allValid = false;
+
+    } else {
+
+        clearFieldError(nameInput);
+    }
+
+
+    // ================================================
+    // 2. TELEFON RAQAMINI TEKSHIRISH
+    // ================================================
+
+    const phoneInput = document.getElementById('inp-phone');
+    const phone = phoneInput.value.trim();
+    const phoneDigits = phone.replace(/\D/g, '');
+
+    const countryCode =
+        document.getElementById('country-code-btn').innerText.trim();
+
+    let phoneValid = false;
+
+    if (countryCode === '+998') {
+        phoneValid = /^\d{9}$/.test(phoneDigits);
+    } else {
+        phoneValid = /^\d{7,15}$/.test(phoneDigits);
+    }
+
+    if (!phoneValid) {
+
+        showFieldError(
+            phoneInput,
+            countryCode === '+998'
+                ? 'Telefon raqami noto‘g‘ri! 9 ta raqam kiriting.'
+                : 'Telefon raqamini to‘g‘ri kiriting!'
+        );
+
+        allValid = false;
+
+    } else {
+
+        clearFieldError(phoneInput);
+    }
+
+
+    // ================================================
+    // 3. IJARAGA BERISH MAYDONLARINI TEKSHIRISH
+    // ================================================
+
+    if (currentMode === 'give') {
+
+        // Avtomobil modeli.
+        const modelInput = document.getElementById('inp-model');
+        const model = modelInput.value.trim();
+
+        if (model.length < 2) {
+
+            showFieldError(
+                modelInput,
+                'Avtomobil modelini to‘g‘ri kiriting!'
+            );
+
+            allValid = false;
+
+        } else {
+
+            clearFieldError(modelInput);
+        }
+
+
+        // Joylashuv.
+        const locationInput = document.getElementById('inp-loc');
+        const location = locationInput.value.trim();
+
+        if (location.length < 3) {
+
+            showFieldError(
+                locationInput,
+                'Joylashuvni to‘g‘ri kiriting!'
+            );
+
+            allValid = false;
+
+        } else {
+
+            clearFieldError(locationInput);
+        }
+
+
+        // Oylik narx.
+        const monthlyInput = document.getElementById('inp-mon');
+        const monthlyPrice = Number(monthlyInput.value);
+
+        if (
+            monthlyInput.value.trim() === '' ||
+            !Number.isFinite(monthlyPrice) ||
+            monthlyPrice <= 0
+        ) {
+
+            showFieldError(
+                monthlyInput,
+                'Oylik narx musbat raqam bo‘lishi kerak!'
+            );
+
+            allValid = false;
+
+        } else {
+
+            clearFieldError(monthlyInput);
+        }
+
+
+        // Yillik narx.
+        const yearlyInput = document.getElementById('inp-year');
+        const yearlyPrice = Number(yearlyInput.value);
+
+        if (
+            yearlyInput.value.trim() === '' ||
+            !Number.isFinite(yearlyPrice) ||
+            yearlyPrice <= 0
+        ) {
+
+            showFieldError(
+                yearlyInput,
+                'Yillik narx musbat raqam bo‘lishi kerak!'
+            );
+
+            allValid = false;
+
+        } else {
+
+            clearFieldError(yearlyInput);
+        }
+
+
+        // 4 ta rasm va 1 ta video tekshiruvi.
+        const mediaOk = mediaIds.every(id => {
+
+            const input = document.getElementById(id);
+
+            return (
+                input.files.length > 0 &&
+                input.dataset.validated === 'true'
+            );
+        });
+
+        if (!mediaOk) {
+
+            showMediaError(
+                '4 ta avtomobil rasmi va 1 ta video AI tekshiruvidan o‘tishi kerak!'
+            );
+
+            allValid = false;
+
+        } else {
+
+            hideMediaError();
+        }
+    }
+
+
+    // ================================================
+    // 4. BARCHA MA'LUMOTLAR TO'G'RI BO'LSA
+    // ================================================
+
+    if (allValid) {
+
+        isRegistered = true;
+
+        // Foydalanuvchi ma'lumotlarini saqlash.
+        userData.name = name;
+
+        userData.phone = countryCode + ' ' + phoneDigits;
+
+        // Profil ma'lumotlarini yangilash.
+        document.getElementById('prof-name').innerText =
+            userData.name;
+
+        document.getElementById('prof-phone').innerText =
+            userData.phone;
+
+        document.getElementById('txt-login').innerText =
+            userData.name.split(' ')[0];
+
+        // Mehmon profilini yashirish.
+        document.getElementById('guest-profile').classList.add('hidden');
+
+        // Foydalanuvchi profilini ko'rsatish.
+        document.getElementById('user-profile').classList.remove('hidden');
+
+
+        // Ijaraga olish rejimi.
+        if (currentMode === 'take') {
+
+            document.getElementById('form-register').classList.add('hidden');
+
+            document.getElementById('car-results').classList.remove('hidden');
+
+        }
+
+        // Ijaraga berish rejimi.
+        else {
+
+            alert('Success!');
+
+            goHome();
+        }
+    }
 }
+
 
 
     // ================================================
@@ -1837,55 +2052,7 @@ if (!validName) {
                29. BARCHA TEKSHIRUVLAR MUVAFFAQIYATLI TUGASA
                ================================================ */
 
-            if (allValid) {
-
-                // Foydalanuvchini ro'yxatdan o'tgan deb belgilaymiz.
-                isRegistered = true;
-
-                // Ismni saqlaymiz.
-                userData.name =
-                    document.getElementById('inp-name').value.trim();
-
-                // Telefon raqamini davlat kodi bilan saqlaymiz.
-                userData.phone =
-                    document.getElementById('country-code-btn').innerText +
-                    ' ' +
-                    document.getElementById('inp-phone').value.trim();
-
-                // Profil oynasidagi ma'lumotlarni yangilaymiz.
-                document.getElementById('prof-name').innerText =
-                    userData.name;
-
-                document.getElementById('prof-phone').innerText =
-                    userData.phone;
-
-                // Yuqoridagi Login tugmasini ism bilan almashtiramiz.
-                document.getElementById('txt-login').innerText =
-                    userData.name.split(' ')[0];
-
-                // Mehmon profilini yashiramiz.
-                document.getElementById('guest-profile').classList.add('hidden');
-
-                // Foydalanuvchi profilini ko'rsatamiz.
-                document.getElementById('user-profile').classList.remove('hidden');
-
-
-                // Ijaraga olish rejimi.
-                if (currentMode === 'take') {
-
-                    document.getElementById('form-register').classList.add('hidden');
-
-                    document.getElementById('car-results').classList.remove('hidden');
-
-                } else {
-
-                    // Ijaraga berish rejimida muvaffaqiyat xabari.
-                    alert('Success!');
-
-                    goHome();
-                }
-            }
-        
+           
 
 
         /* =====================================================
