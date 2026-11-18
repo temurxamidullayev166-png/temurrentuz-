@@ -673,6 +673,16 @@
         let isRegistered = false;
         let currentMode = "";
         let selectedLanguage = "O'zbek";
+        let savedLanguage = "";
+
+        // Tanlangan tilni brauzerdan tiklash (xotira ishlamasa ham sayt ochiladi)
+        try {
+            savedLanguage = localStorage.getItem("temurrent-language") || "";
+        } catch (error) {
+            console.warn("Til sozlamasini saqlash imkoni yo'q:", error);
+        }
+
+        if (savedLanguage) selectedLanguage = savedLanguage;
 
         let userData = {
             name: "",
@@ -781,6 +791,18 @@
 
             selectedLanguage = lang;
 
+            // Til tanlovini keyingi tashriflar uchun saqlash
+            try {
+                localStorage.setItem("temurrent-language", lang);
+            } catch (error) {
+                console.warn("Til sozlamasini saqlab bo'lmadi:", error);
+            }
+
+            document.documentElement.lang =
+                lang === "O'zbek" ? "uz" :
+                lang === "English" ? "en" :
+                lang === "Русский" ? "ru" : "en";
+
             $("txt-login").textContent =
                 isRegistered ? userData.name.split(" ")[0] : t.login;
 
@@ -791,6 +813,11 @@
             $("btn-next").textContent = t.submit;
             $("txt-back").textContent = t.back;
             $("txt-title-take").textContent = t.title_take;
+
+            if (currentMode === "give" || currentMode === "take") {
+                $("reg-title").textContent =
+                    currentMode === "give" ? t.title_give : t.title_take;
+            }
 
             $("inp-model").placeholder = t.model;
             $("inp-phone").placeholder = t.phone;
@@ -1405,6 +1432,13 @@
             });
         });
 
+
+        // Saqlangan tilni tiklash; birinchi tashrifda til oynasi ochiq qoladi
+        if (translations[selectedLanguage]) {
+            setLang(selectedLanguage);
+        } else {
+            selectedLanguage = "O'zbek";
+        }
 
         // Dastlabki holat
         updateSubmitButton();
