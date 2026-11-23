@@ -785,7 +785,7 @@
 
 
         // Tarjima
-        function setLang(lang) {
+        function setLang(lang, closeMenu = true) {
             const t = translations[lang];
             if (!t) return;
 
@@ -825,7 +825,7 @@
             $("inp-mon").placeholder = t.mon;
             $("inp-year").placeholder = t.year;
 
-            $("overlay-screen").classList.add("hidden");
+            if (closeMenu) $("overlay-screen").classList.add("hidden");
         }
 
 
@@ -1433,12 +1433,15 @@
         });
 
 
-        // Saqlangan tilni tiklash; birinchi tashrifda til oynasi ochiq qoladi
+        // Har bir yangi tashrifda til tanlash oynasi ko‘rinadi.
+        // Oldin tanlangan til esa menyuda boshlang‘ich til sifatida saqlanadi.
         if (translations[selectedLanguage]) {
-            setLang(selectedLanguage);
+            setLang(selectedLanguage, false);
         } else {
             selectedLanguage = "O'zbek";
+            setLang(selectedLanguage, false);
         }
+        $("overlay-screen").classList.remove("hidden");
 
         // Dastlabki holat
         updateSubmitButton();
